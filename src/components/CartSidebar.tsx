@@ -25,11 +25,27 @@ export function CartSidebar({
 }: CartSidebarProps) {
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
 
+  // 调试日志
+  console.log('=== CartSidebar Component Debug ===');
+  console.log('CartSidebar: isOpen:', isOpen);
+  console.log('CartSidebar: cart prop:', JSON.stringify(cart, null, 2));
+  console.log('CartSidebar: cart type:', typeof cart);
+  console.log('CartSidebar: cart items:', cart?.items);
+  console.log('CartSidebar: cart items length:', cart?.items?.length);
+  console.log('CartSidebar: cart total:', cart?.total);
+  
   // 提供默认值以防cart为undefined
   const safeCart = cart || { items: [], total: 0, updatedAt: new Date() };
   const cartItems = safeCart.items;
   const totalPrice = safeCart.total;
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  
+  console.log('CartSidebar: safeCart:', JSON.stringify(safeCart, null, 2));
+  console.log('CartSidebar: cartItems:', cartItems);
+  console.log('CartSidebar: cartItems length:', cartItems.length);
+  console.log('CartSidebar: totalPrice:', totalPrice);
+  console.log('CartSidebar: totalItems:', totalItems);
+  console.log('=== CartSidebar Component Debug End ===');
 
   const handleQuantityChange = async (productId: string, newQuantity: number) => {
     if (disabled || updatingItems.has(productId)) return;

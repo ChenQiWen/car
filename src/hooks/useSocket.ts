@@ -16,7 +16,11 @@ interface CartState {
 
 interface SocketState {
   connected: boolean;
-  cart: CartState;
+  cart: {
+    items: CartItem[];
+    total: number;
+    updatedAt: Date;
+  };
   onlineUsers: User[];
   message: string;
   error: string | null;
@@ -45,6 +49,17 @@ export function useSocket(): UseSocketReturn {
     message: '',
     error: null
   });
+  
+  // 添加状态变化监听
+  useEffect(() => {
+    console.log('=== useSocket State Change Debug ===');
+    console.log('useSocket: State updated:', JSON.stringify(state, null, 2));
+    console.log('useSocket: Cart items count:', state.cart?.items?.length || 0);
+    console.log('useSocket: Cart total:', state.cart?.total || 0);
+    console.log('useSocket: Connected:', state.connected);
+    console.log('useSocket: Online users count:', state.onlineUsers?.length || 0);
+    console.log('=== useSocket State Change Debug End ===');
+  }, [state]);
   const [currentUser, setCurrentUser] = useState<{ id: string; username: string } | null>(null);
   const currentUserRef = useRef<{ id: string; username: string } | null>(null);
   
@@ -98,33 +113,32 @@ export function useSocket(): UseSocketReturn {
     });
 
     // 购物车更新事件
-    socket.on('CART_UPDATED', (data: { cart: CartState; lastModifiedBy: string; timestamp: number }) => {
+    socket.on('CART_UPDATED', (data: { cart: CartItem[]; lastModifiedBy?: string; timestamp?: number }) => {
       console.log('=== CART_UPDATED Event Received ===');
-      console.log('CART_UPDATED: Raw data received:', data);
-      console.log('CART_UPDATED: Current user:', currentUser);
-      console.log('CART_UPDATED: Socket ID:', socket.id);
-      console.log('CART_UPDATED: Timestamp:', new Date().toISOString());
+      console.log('Raw data:', data);
+      console.log('Cart data type:', typeof data.cart);
+      console.log('Cart is array:', Array.isArray(data.cart));
+      console.log('Cart length:', data.cart?.length || 0);
       
-      // 确保cart对象结构完整
-      const safeCart: CartState = {
-        items: Array.isArray(data.cart?.items) ? data.cart.items : [],
-        total: typeof data.cart?.total === 'number' ? data.cart.total : 0,
-        updatedAt: data.cart?.updatedAt ? new Date(data.cart.updatedAt) : new Date()
+      // 确保cart是数组
+      const cartItems = Array.isArray(data.cart) ? data.cart : [];
+      
+      const safeCart = {
+        items: cartItems,
+        total: cartItems.reduce((sum, item) => sum + (item.subtotal || 0), 0),
+        updatedAt: data.timestamp ? new Date(data.timestamp) : new Date()
       };
       
-      console.log('CART_UPDATED: Safe cart structure:', safeCart);
-      console.log('CART_UPDATED: Items count:', safeCart.items.length);
-      console.log('CART_UPDATED: Total amount:', safeCart.total);
-      console.log('CART_UPDATED: Last modified by:', data.lastModifiedBy);
+      console.log('Processed cart:', safeCart);
+      console.log('Cart items count:', safeCart.items.length);
+      console.log('Cart total:', safeCart.total);
       
       setState(prev => {
-        console.log('CART_UPDATED: Previous state cart:', prev.cart);
+        console.log('Previous state:', prev.cart);
         const newState = { ...prev, cart: safeCart };
-        console.log('CART_UPDATED: New state cart:', newState.cart);
+        console.log('New state:', newState.cart);
         return newState;
       });
-      
-      console.log('=== CART_UPDATED Event Processing Complete ===');
     });
 
     // 用户状态更新事件

@@ -4,6 +4,7 @@ import { ProductGrid } from '../components/ProductGrid';
 import { CartSidebar } from '../components/CartSidebar';
 import { OnlineUsers } from '../components/OnlineUsers';
 import { NotificationManager } from '../components/NotificationToast';
+import { CartDebugPanel } from '../components/CartDebugPanel';
 import { useSocket } from '../hooks/useSocket';
 import { useUser } from '../hooks/useUser';
 import { UserSetup } from '../components/UserSetup';
@@ -242,6 +243,9 @@ export default function Home() {
 
       {/* 通知管理器 */}
       <NotificationManager message={message} error={error} />
+      
+      {/* 调试面板 */}
+      <CartDebugPanel />
     </div>
   );
 }
